@@ -1,0 +1,7 @@
+CREATE TABLE wp_customers_also_bought (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    product_id INT UNSIGNED NOT NULL,
+    also_bought_product_id INT UNSIGNED NOT NULL,
+    times_purchased INT UNSIGNED NOT NULL DEFAULT 1,
+    UNIQUE KEY product_relation (product_id, also_bought_product_id)  -- Ensure that each product pair is unique
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
