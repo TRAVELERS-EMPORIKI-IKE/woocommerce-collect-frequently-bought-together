@@ -8,40 +8,37 @@ function show_related_products_based_on_purchase() {
 
     $table_name = $wpdb->prefix . "customers_also_bought";
 
-    // Get related products based on purchase data from our custom table.
     $related_products = $wpdb->get_results($wpdb->prepare(
         "SELECT also_bought_product_id FROM $table_name WHERE product_id = %d ORDER BY times_purchased DESC LIMIT 20",
         $current_product_id
     ));
 
     if (!$related_products) {
-        return; // Exit if there are no related products for the current product.
+        return;
     }
 
     echo '<div class="related-products-based-on-purchase">';
     echo '<h2>' . esc_html__('Customers who bought this also bought:', 'oceanwp') . '</h2>';
 
-    $counter = 0; // Initialize counter
+    $counter = 0;
 
     foreach ($related_products as $related_product) {
         $_product = wc_get_product($related_product->also_bought_product_id);
 
-        // Ensure the product exists and is visible.
         if (!$_product || !$_product->is_visible()) {
             continue;
         }
 
         if ($counter % 5 == 0) {
-            // Every 5 products, start a new row.
             if ($counter > 0) {
-                echo '</ul>';  // Close the previous row if it's not the first group
+                echo '</ul>';
             }
-            echo '<ul class="products-related" style="display: flex; justify-content: space-between; margin-bottom: 20px;">'; // Starts a new row of products.
+            echo '<ul class="products-related" style="display: flex; justify-content: space-between; margin-bottom: 20px;">';
         }
 
         $product_image = wp_get_attachment_image_src(get_post_thumbnail_id($_product->get_id()), 'woocommerce_thumbnail');
 
-        echo '<li class="product" style="flex: 1; margin: 0 5px; text-align: center;">'; // Display the product in a list item.
+        echo '<li class="product" style="flex: 1; margin: 0 5px; text-align: center;">';
         echo '<a href="' . esc_url(get_permalink($_product->get_id())) . '">';
         if ($product_image) {
             echo '<img src="' . esc_url($product_image[0]) . '" alt="' . esc_attr($_product->get_name()) . '">';
@@ -49,15 +46,22 @@ function show_related_products_based_on_purchase() {
         echo '<h2 class="woocommerce-loop-product__title">' . get_the_title($_product->get_id()) . '</h2>';
         echo '</a>';
         echo '<span class="price">' . $_product->get_price_html() . '</span>';
-        echo '<a href="?add-to-cart=' . $_product->get_id() . '" class="button add_to_cart_button">' . esc_html__('Add to cart', 'oceanwp') . '</a>';
+
+        // Check product type and show appropriate button
+        if ($_product->get_type() == 'simple') {
+            echo '<a href="?add-to-cart=' . $_product->get_id() . '" class="button add_to_cart_button">' . esc_html__('Add to cart', 'oceanwp') . '</a>';
+        } elseif ($_product->get_type() == 'variable') {
+            echo '<a href="' . esc_url(get_permalink($_product->get_id())) . '" class="button">' . esc_html__('Select options', 'oceanwp') . '</a>';
+        }
+
         echo '</li>';
 
         $counter++;
 
         if ($counter % 5 == 0 || $counter == count($related_products)) {
-            echo '</ul>'; // Close the row when 5 products are displayed or at the last product.
+            echo '</ul>';
         }
     }
 
-    echo '</div>'; // Close the container.
+    echo '</div>';
 }
